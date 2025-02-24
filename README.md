@@ -2,9 +2,9 @@
 
 A NodeJS console application for fetching albums from the LT web service and "drawing" them to the terminal window.
 
-The application requests a photo from the web service as an array buffer and uses the [sharp](https://www.npmjs.com/package/sharp) npm package to resize it to fit the user's terminal window. I then iterate over the array buffer values, sample each RGB byte, and use the [chalk](https://www.npmjs.com/package/chalk) npm
-package to draw an appropriately colored ASCII character to the screen, thus recreating the photo in ASCII.
-Below each photo is also a link to open the original photo in the user's browser (might have to CTRL + click based on terminal).
+A user may browse by album, then choose a photo from the selected album to view. The photo may be viewed as ASCII art directly in the console or as the original image in the user's default browser.
+
+The ASCII art is created by storing the photo response from the web service as an array buffer and using the [sharp](https://www.npmjs.com/package/sharp) npm package to resize it to fit the user's terminal window. The array buffer values are then iterated over, sampling each RGB byte value to generate the individual ASCII color, and using the [chalk](https://www.npmjs.com/package/chalk) npm package to color the console output.
 
 > Note: Photo resolution is tied to user's terminal window width, therefore image output clarity is improved with a larger terminal window size.
 

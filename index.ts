@@ -89,17 +89,6 @@ async function drawPhoto(photo: TPhoto, renderer: string) {
     }
     console.log(row);
   }
-
-  const linkText = "Click here to view in browser";
-  const pl = (info.width * 2 - linkText.length) / 2;
-
-  console.log(
-    "\n" +
-      "".padStart(pl, " ") +
-      chalk.bgBlue.whiteBright(
-        `\x1b]8;;${photo.url}\x1b\\${linkText}\x1b]8;;\x1b\\\n`
-      )
-  );
 }
 
 (async function () {
