@@ -1,6 +1,7 @@
 import axios from "axios";
 import chalk from "chalk";
 import inquirer from "inquirer";
+import open from "open";
 import sharp from "sharp";
 
 type TPhoto = {
@@ -119,81 +120,109 @@ async function drawPhoto(photo: TPhoto, renderer: string) {
     clearLastLine();
 
     while (true) {
-      const albumRes = await prompt([
-        {
-          name: "albumId",
-          message: "Select an album:",
-          type: "list",
-          choices: [
-            ...data
-              .map((album) => ({
-                name: "Album " + album.albumId,
-                value: album.albumId,
-              }))
-              .sort((a, b) => (a.value < b.value ? -1 : 1)),
-            {
-              name: "\u21b2 Exit",
-              value: -1,
-            },
-          ],
-        },
-      ]);
-
-      if (albumRes.albumId === -1) break;
-
-      const album = data.find((album) => album.albumId == albumRes.albumId);
-
-      if (!album) continue;
-
-      let photo: TPhoto | undefined;
-      while (true) {
-        const photoRes = await prompt([
+      try {
+        const albumRes = await prompt([
           {
-            name: "photo",
-            message: `Select a photo in album ${album.albumId}:`,
+            name: "albumId",
+            message: "Select an album:",
             type: "list",
             choices: [
-              ...album.photos.map((p) => ({
-                name: p.title,
-                value: p.photoId,
-              })),
+              ...data
+                .map((album) => ({
+                  name: "Album " + album.albumId,
+                  value: album.albumId,
+                }))
+                .sort((a, b) => (a.value < b.value ? -1 : 1)),
               {
-                name: "\u21b2 Back To Albums",
+                name: "\u21b2 Exit",
                 value: -1,
               },
             ],
           },
         ]);
 
-        if (photoRes.photo === -1) break;
+        if (albumRes.albumId === -1) break;
 
-        photo = album.photos.find((p) => p.photoId === photoRes.photo);
+        const album = data.find((album) => album.albumId == albumRes.albumId);
 
-        if (!photo) throw new Error("Error finding selected photo!");
+        if (!album) continue;
 
-        const rendererRes = await prompt([
-          {
-            name: "renderer",
-            message: `Select a rendering method:`,
-            type: "list",
-            choices: [
+        let photo: TPhoto | undefined;
+        while (true) {
+          try {
+            const photoRes = await prompt([
               {
-                name: "Binary",
-                value: "binary",
+                name: "photo",
+                message: `Select a photo in album ${album.albumId}:`,
+                type: "list",
+                choices: [
+                  ...album.photos.map((p) => ({
+                    name: p.title,
+                    value: p.photoId,
+                  })),
+                  {
+                    name: "\u21b2 Back To Albums",
+                    value: -1,
+                  },
+                ],
               },
-              {
-                name: "Lean Techniques",
-                value: "lt",
-              },
-              {
-                name: "Pixel",
-                value: "pixel",
-              },
-            ],
-          },
-        ]);
+            ]);
 
-        await drawPhoto(photo, rendererRes.renderer);
+            if (photoRes.photo === -1) break;
+
+            photo = album.photos.find((p) => p.photoId === photoRes.photo);
+
+            if (!photo) throw new Error("Error finding selected photo!");
+
+            try {
+              const rendererRes = await prompt([
+                {
+                  name: "renderer",
+                  message: `Select a viewing method:`,
+                  type: "list",
+                  choices: [
+                    {
+                      name: "Console: Binary",
+                      value: "binary",
+                    },
+                    {
+                      name: "Console: Lean Techniques",
+                      value: "lt",
+                    },
+                    {
+                      name: "Console: Pixel",
+                      value: "pixel",
+                    },
+                    {
+                      name: "Browser: Original Image",
+                      value: "browser",
+                    },
+                  ],
+                },
+              ]);
+              if (rendererRes.renderer === "browser") open(photo.url);
+              else await drawPhoto(photo, rendererRes.renderer);
+            } catch (viewMethodErr) {
+              if (
+                viewMethodErr instanceof Error &&
+                viewMethodErr.name === "ExitPromptError"
+              )
+                break;
+              else throw viewMethodErr;
+            }
+          } catch (photoErr) {
+            if (
+              photoErr instanceof Error &&
+              photoErr.name === "ExitPromptError"
+            )
+              break;
+            else throw photoErr;
+          }
+        }
+      } catch (albumErr) {
+        if (albumErr instanceof Error && albumErr.name === "ExitPromptError")
+          break;
+        else throw albumErr;
       }
     }
   } catch (error) {
