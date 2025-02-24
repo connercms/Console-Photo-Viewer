@@ -10,6 +10,8 @@ Below each photo is also a link to open the original photo in the user's browser
 
 # Steps to run the program
 
+First, use `npm i` to install the required dependencies.
+
 You can run the program using `ts-node` from the project root as follows: `npx ts-node index.ts`
 
 You can use the start script (`npm run start`) which will first build the source then run the compiled javascript.
